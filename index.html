@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sub Meter Bill Calculator</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 15px;
+    }
+
+    .container {
+      background: #fff;
+      padding: 25px 20px;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      width: 100%;
+      max-width: 480px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #333;
+    }
+
+    label {
+      display: block;
+      margin: 12px 0 6px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+      margin-bottom: 10px;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .result {
+      margin-top: 20px;
+      font-size: 15px;
+      font-weight: bold;
+      white-space: pre-line;
+      background: #f3f3f3;
+      padding: 16px;
+      border-radius: 10px;
+      color: #333;
+      user-select: text;
+    }
+
+    #rateDisplay {
+      margin-top: 15px;
+      font-weight: 600;
+      color: #222;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Sub Meter Bill Calculator</h2>
+
+    <label for="numMeters">Number of Sub Meters</label>
+    <select id="numMeters">
+      <option value="" disabled selected>Select number of sub meters</option>
+    </select>
+
+    <label for="totalBill">Total Bill Amount (₹)</label>
+    <input type="number" id="totalBill" placeholder="Enter total bill amount" />
+
+    <label for="totalUnits">Total Units Consumed</label>
+    <input type="number" id="totalUnits" placeholder="Enter total units consumed" />
+
+    <div id="subMeterInputs"></div>
+
+    <button onclick="calculateBill()">Calculate</button>
+    <button onclick="refreshForm()">Refresh</button>
+
+    <div id="rateDisplay"></div>
+    <div id="result" class="result" contenteditable="true"></div>
+  </div>
+
+  <script>
+    // Populate the select with 1 to 50 options
+    const select = document.getElementById('numMeters');
+    for (let i = 1; i <= 50; i++) {
+      const option = document.createElement('option');
+      option.value = i;
+      option.textContent = i;
+      select.appendChild(option);
+    }
+
+    // Generate sub meter input fields based on selected number of sub meters
+    select.addEventListener('change', function () {
+      const container = document.getElementById('subMeterInputs');
+      container.innerHTML = ''; // Clear any previous inputs
+      const numMeters = parseInt(this.value);
+
+      for (let i = 1; i <= numMeters; i++) {
+        const label = document.createElement('label');
+        label.textContent = `Sub Meter ${i} - Units Consumed`;
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.placeholder = `Units for Sub Meter ${i}`;
+        input.className = 'subMeterInput';
+        input.dataset.index = i;
+        container.appendChild(label);
+        container.appendChild(input);
+      }
+    });
+
+    // Calculate and show results for sub meters and main meter
+    function calculateBill() {
+      const totalBill = parseFloat(document.getElementById('totalBill').value);
+      const totalUnits = parseFloat(document.getElementById('totalUnits').value);
+      const rateDisplay = document.getElementById('rateDisplay');
+      const subMeterInputs = document.querySelectorAll('.subMeterInput');
+
+      if (isNaN(totalBill) || isNaN(totalUnits) || totalUnits <= 0) {
+        alert('Please enter valid total bill and total units.');
+        return;
+      }
+
+      const ratePerUnit = totalBill / totalUnits;
+      rateDisplay.textContent = `Rupees per Unit Charging: ₹${ratePerUnit.toFixed(2)}`;
+
+      let resultText = '';
+      let totalSubUnits = 0;
+      const subUnitsArray = [];
+
+      subMeterInputs.forEach(input => {
+        const val = parseFloat(input.value);
+        if (!isNaN(val)) {
+          totalSubUnits += val;
+          subUnitsArray.push(val);
+        } else {
+          subUnitsArray.push(0);
+        }
+      });
+
+      subUnitsArray.forEach((units, index) => {
+        const amount = units * ratePerUnit;
+        resultText += `Sub Meter ${index + 1}: ₹${amount.toFixed(2)}\n`;
+      });
+
+      const mainUnits = totalUnits - totalSubUnits;
+      const mainAmount = mainUnits * ratePerUnit;
+      resultText += `\nMain Meter: ₹${mainAmount.toFixed(2)} (for ${mainUnits.toFixed(2)} units)`;
+
+      document.getElementById('result').textContent = resultText;
+    }
+
+    // Refresh the form to reset inputs
+    function refreshForm() {
+      document.getElementById('numMeters').selectedIndex = 0;
+      document.getElementById('totalBill').value = '';
+      document.getElementById('totalUnits').value = '';
+      document.getElementById('subMeterInputs').innerHTML = '';
+      document.getElementById('rateDisplay').textContent = '';
+      document.getElementById('result').textContent = '';
+    }
+  </script>
+</body>
+</html>
